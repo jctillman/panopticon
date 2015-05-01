@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta content="stuff, to, help, search, engines, not" name="keywords">
+<meta content="What this page is about." name="description">
+<meta content="Display Webcam Stream" name="title">
+<title>Display Webcam Stream</title>
+<script src="js/framehandler.js"></script>
+<script src="js/imgproc.js"></script>
+<script src="js/panopticon.js"></script>
+<script src="js/jquery.js"></script>
+<script>
+
+$(document).ready(function(){
+
+	var options = {
+		verbose: true,
+		showVideo: true,
+	};
+
+	var p = new Panopticon('container', 50, options);
+
+	var top = 200;
+	var side = 600;
+
+	var averageUp = [0, 0, 0, 0, 0, 0, 0,0,0,0];
+	var averageSide = [0, 0, 0, 0, 0, 0, 0,0,0,0];
+	var speedUp = 0;
+	var speedSide = 0;
+
+	p.onFrame(function(obj){
+
+		averageUp.shift();
+		averageUp.push(obj.up);
+		averageSide.shift();
+		averageSide.push(obj.left);
+		speedUp = averageUp.reduce(function(a,b){return a+b}, 0) / averageUp.length / 1;
+		//speedUp = speedUp * .9; 
+		speedSide = averageSide.reduce(function(a,b){return a+b}, 0) / averageSide.length / 1;
+		//console.log(averageSide);
+		//speedSide = speedSide * .9;
+
+		top = top + speedUp;
+		side = side + speedSide;
+		//console.log(obj.up);
+		//console.log(top);
+		document.getElementById("temp").style.top = top+"px";
+		document.getElementById("temp").style.left = side+"px";
+
+
+	});
+
+});
+
+</script>
+<style>
+</style>
+</head>
+  
+<body>
+<div id="container">
+</div>
+
+
+<img id="temp" style="position: absolute; left: 600px; top: 200px;" src="img/Chrome_logo.png"></img>
+
+
+
+
+</body>
+</html>
