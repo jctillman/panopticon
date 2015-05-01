@@ -7,91 +7,101 @@ var sizeOfLarger = function(arr, size) { return arr.filter(function(n){return n 
 function Panopticon(container, interval, options){
 
 	this.onFrames = [];
+
 	var self = this;
-	var initialized = false;
-	var resolutionCols, resolutionRows, biggestMovement, oldImg, oldCols, oldRows
+	this.initialized = false;
 
-	//Basic settings
-	//How many columns do we want to examine?
-	var numCols = options.numCols || 20;
-	var numRows = options.numRows || 10;
-	//How many of these columns do we want to require to be moving, before anything moves?
-	var requiredCols = options.requiredCols || 4;
-	var requiredRows = options.requiredRows || 4;
-	var mode = options.mode || 1;
-
-	//Slightly more advanced settings.
-	//What's the biggest movement we anticipate, in per-percentage-of-screen distances?  Won't really work past 20%, probably.
-	//This also takes up some serious time working.
-	var biggestMovementPercentage = options.biggestMovementPercentage || 10;
-	var dampening = options.dampening || 10;
-	var stepSearchSize = options.stepSearchSize || 1;
-	var minimumNoticedScrollDistance = options.minimumNoticedScrollDistance || 3;
-
-	var initialize = function(img){
-		if(img && img.width && img.height){
-			resolutionCols = Math.floor(img.width / numCols);
-			resolutionRows = Math.floor(img.height / numRows);
-			while(img.width % resolutionCols !== 0){resolutionCols = resolutionCols + 1}
-			while(img.height % resolutionRows !== 0){resolutionRows = resolutionRows + 1}
-			biggestMovement = Math.ceil(biggestMovementPercentage * (((img.width + img.height) / 2) / 100));
-			initialized = true;
-		}
-	}
-
-	var perFrameFirstMode = function(img){
-
-		if(!initialized && !!img){initialize(img);}
-
-		if(!resolutionRows || !resolutionCols){return;}
-
-		//console.log(resolutionCols, resolutionRows)
-
-		//Reduce the resolution for both columns and for the rows.
-		var toCols = imgproc.cols(oldImg, img, resolutionCols);
-		var toRows = imgproc.rows(oldImg, img, resolutionRows);
-
-		//Get the differences for the columns
-		var shiftUp = imgproc.shiftedArr(oldCols, toCols, biggestMovement, stepSearchSize, dampening);
-		var avShiftUp = imgproc.chunkify(shiftUp, requiredCols, minimumNoticedScrollDistance);
-
-		var shiftSide = imgproc.shiftedArr(toRows, oldRows, biggestMovement, stepSearchSize, dampening);
-		var avShiftSide = imgproc.chunkify(shiftSide, requiredRows, minimumNoticedScrollDistance);
-
-		if(options.showVideo){
-			var toReturn = imgproc.allToImg(toCols, toRows, img.width, img.height, resolutionCols, resolutionRows);
-		}
-
-		var obj = {up: avShiftUp,left: avShiftSide}
-
-		for (var x = 0; x < self.onFrames.length; x++){
-			self.onFrames[x](obj);
-		}
-
-		//postprocessing needed for stuff.
-		//We need the old image, so we can product the next old cols.
-		//And we need the old cols, which is actually the difference we had for this time.
-		oldImg = imgproc.copy(img);
-		oldCols = deepCopy(toCols);
-		oldRows = deepCopy(toRows);
-
-		if (options.showVideo){return toReturn || img;}
-	};
-
+	//Basic settings--those you can set without knowing what the resolution of the camera will be.
+	this.setAlphaSettings(options);
 
 	var fh = new FrameHandler(container, interval, options);
-	if(mode == 1){
-		fh.onFrame(perFrameFirstMode);
-	}else if(mode == 2){
-		fh.onFrame(perFrameSecondMode);
+	if(this.mode == 1){
+		fh.onFrame(function(img){
+			return self.perFrameFirstMode(img);
+		});
+	}else if(self.mode == 2){
+		//fh.onFrame(perFrameSecondMode);
 	}
+
 }
 
 Panopticon.prototype.onFrame = function(func){
 	this.onFrames.push(func);
-}
+};
+
+Panopticon.prototype.setAlphaSettings = function(options){
+	//Basic settings
+	//How many columns do we want to examine?
+	this.numCols = options.numCols || 20;
+	this.numRows = options.numRows || 10;
+	//How many of these columns do we want to require to be moving, before anything moves?
+	this.requiredCols = options.requiredCols || 4;
+	this.requiredRows = options.requiredRows || 4;
+	this.mode = options.mode || 1;
+
+	//Slightly more advanced settings.
+	//What's the biggest movement we anticipate, in per-percentage-of-screen distances?  Won't really work past 20%, probably.
+	//This also takes up some serious time working.
+	this.biggestMovementPercentage = options.biggestMovementPercentage || 10;
+	this.dampening = options.dampening || 10;
+	this.stepSearchSize = options.stepSearchSize || 1;
+	this.minimumNoticedScrollDistance = options.minimumNoticedScrollDistance || 3;
+	this.showVideo = options.showVideo || false;
+};
 
 
+Panopticon.prototype.initializer = function(img){
+	if(img && img.width && img.height){
+		this.resolutionCols = Math.floor(img.width / this.numCols);
+		this.resolutionRows = Math.floor(img.height / this.numRows);
+		while(img.width % this.resolutionCols !== 0){this.resolutionCols = this.resolutionCols + 1}
+		while(img.height % this.resolutionRows !== 0){this.resolutionRows = this.resolutionRows + 1}
+		this.biggestMovement = Math.ceil(this.biggestMovementPercentage * (((img.width + img.height) / 2) / 100));
+		this.initialized = true;
+	}
+};
+
+
+Panopticon.prototype.perFrameFirstMode = function(img){
+
+	
+	if(!this.initialized && !!img){ this.initializer(img);}
+	//console.log(img);
+	if(!this.resolutionRows || !this.resolutionCols){return;}
+
+	
+
+	//Reduce the resolution for both columns and for the rows.
+	var toCols = imgproc.cols(this.oldImg, img, this.resolutionCols);
+	var toRows = imgproc.rows(this.oldImg, img, this.resolutionRows);
+
+	//Get the differences for the columns
+	var shiftUp = imgproc.shiftedArr(this.oldCols, toCols, this.biggestMovement, this.stepSearchSize, this.dampening);
+	var avShiftUp = imgproc.chunkify(shiftUp, this.requiredCols, this.minimumNoticedScrollDistance);
+
+	var shiftSide = imgproc.shiftedArr(toRows, this.oldRows, this.biggestMovement, this.stepSearchSize, this.dampening);
+	var avShiftSide = imgproc.chunkify(shiftSide, this.requiredRows, this.minimumNoticedScrollDistance);
+
+	if(this.showVideo){
+		var toReturn = imgproc.allToImg(toCols, toRows, img.width, img.height, this.resolutionCols, this.resolutionRows);
+	}
+
+	var obj = {up: avShiftUp,left: avShiftSide}
+
+	for (var x = 0; x < this.onFrames.length; x++){
+		//console.log(obj)
+		this.onFrames[x](obj);
+	}
+
+	//postprocessing needed for stuff.
+	//We need the old image, so we can product the next old cols.
+	//And we need the old cols, which is actually the difference we had for this time.
+	this.oldImg = imgproc.copy(img);
+	this.oldCols = deepCopy(toCols);
+	this.oldRows = deepCopy(toRows);
+
+	if (this.showVideo){return toReturn || img;}
+};
 
 
 
