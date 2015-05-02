@@ -38,7 +38,7 @@ Panopticon.prototype.setAlphaSettings = function(options){
 
 	//How many columns do we want to examine?
 	this.numCols = options.numCols || 20;
-	this.numRows = options.numRows || 10;
+	this.numRows = options.numRows || 20;
 	
 	//How many of these columns do we want to require to be moving before anything moves.
 	this.requiredCols = options.requiredCols || 4;
@@ -52,7 +52,7 @@ Panopticon.prototype.setAlphaSettings = function(options){
 	//This also takes up some serious time working.
 	this.biggestMovementPercentage = options.biggestMovementPercentage || 10;
 	this.dampening = options.dampening || 150;
-	this.stepSearchSize = options.stepSearchSize || 1;
+	this.stepSearchSize = options.stepSearchSize || 5;
 	this.minimumNoticedScrollDistance = options.minimumNoticedScrollDistance || 5;
 	this.showVideo = options.showVideo || false;
 };
