@@ -49,15 +49,15 @@ Panopticon.prototype.setAlphaSettings = function(options){
 	this.requiredRows = options.requiredRows || 4;
 
 	//Use mode 1, by default.
-	this.mode = options.mode || 2;
+	this.mode = options.mode || 1;
 
 	//Slightly more advanced settings.
 	//What's the biggest movement we anticipate, in per-percentage-of-screen distances?  Won't really work past 20%, probably.
 	//This also takes up some serious time working.
-	this.biggestMovementPercentage = options.biggestMovementPercentage || 15;
+	this.biggestMovementPercentage = options.biggestMovementPercentage || 5;
 	this.dampening = options.dampening || 150;
 	this.stepSearchSize = options.stepSearchSize || 5;
-	this.minimumNoticedScrollDistance = options.minimumNoticedScrollDistance || 5;
+	this.minimumNoticedScrollDistance = options.minimumNoticedScrollDistance || 3;
 	this.showVideo = options.showVideo || false;
 };
 
@@ -101,7 +101,8 @@ Panopticon.prototype.perFrameFirstMode = function(img){
 	this.oldCols = deepCopy(toCols);
 	this.oldRows = deepCopy(toRows);
 
-	if (this.showVideo){return toReturn || img;}
+	if (this.showVideo){return imgproc.refl(img);}
+	//if (this.showVideo){return toReturn || img;}
 };
 
 
@@ -128,7 +129,8 @@ Panopticon.prototype.perFrameSecondMode = function(img){
 	this.oldCols = deepCopy(toCols);
 	this.oldRows = deepCopy(toRows);
 
-	if (this.showVideo){return toReturn || img;}
+	if (this.showVideo){return img;}
+	//if (this.showVideo){return toReturn || img;}
 };
 
 

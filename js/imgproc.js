@@ -2,6 +2,27 @@ var imgproc = {
 
 	arrayOfFill: function(length, fill){var arr = [];for (var x = 0; x < length; x++){arr.push(fill(x))}return arr;},
 
+	//takes imageData, returns new imagedata reflected around vertical axis
+	refl: function(imgDataA){
+		if(!!imgDataA){
+			var ret = new ImageData(imgDataA.width, imgDataA.height);
+			var width = imgDataA.width;
+			var height = imgDataA.height;
+			var size = imgDataA.data.length;
+			var dataA = imgDataA.data;
+			var data = ret.data;
+			for(var x = 0; x < size; x=x+4*width){
+				for(var y = 0; y < width * 4; y=y+4){
+					data[x-y+width*4  ] = dataA[x+y  ];
+					data[x-y+width*4+1] = dataA[x+y+1];
+					data[x-y+width*4+2] = dataA[x+y+2];
+					data[x-y+width*4+3] = 255;
+				}
+			}
+			return ret;
+		}
+	},
+
 	//Takes ImageData, ImageData, returns new
 	diff: function (imgDataA, imgDataB){
 		if(!!imgDataA && !!imgDataB){
@@ -189,7 +210,7 @@ var imgproc = {
 
 	shiftedSingle: function(before, after, range, step, dampening){
 		if(before && after){
-			var smallestDiff = before.reduce(function(old, cur, index){ return old + Math.abs(before[index] - after[index])}) - range * dampening;
+			var smallestDiff = before.reduce(function(old, cur, index){ return old + Math.abs(before[index] - after[index])}) - before.length * dampening;
 			var smallestIndex = 0;
 			var length = before.length - range;
 			for(var x = -range; x < range; x = x + step){
