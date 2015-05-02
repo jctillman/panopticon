@@ -22,7 +22,11 @@ function Panopticon(container, interval, options){
 			return self.perFrameFirstMode(img);
 		});
 	}else if(self.mode == 2){
-		//fh.onFrame(perFrameSecondMode);
+		fh.onFrame(function(img){
+			if(!self.betaInitialized && !!img){ self.setBetaSettings(img);}
+			if(!self.resolutionRows || !self.resolutionCols){return;}
+			return self.perFrameSecondMode(img);
+		});
 	}
 
 }
@@ -45,12 +49,12 @@ Panopticon.prototype.setAlphaSettings = function(options){
 	this.requiredRows = options.requiredRows || 4;
 
 	//Use mode 1, by default.
-	this.mode = options.mode || 1;
+	this.mode = options.mode || 2;
 
 	//Slightly more advanced settings.
 	//What's the biggest movement we anticipate, in per-percentage-of-screen distances?  Won't really work past 20%, probably.
 	//This also takes up some serious time working.
-	this.biggestMovementPercentage = options.biggestMovementPercentage || 10;
+	this.biggestMovementPercentage = options.biggestMovementPercentage || 15;
 	this.dampening = options.dampening || 150;
 	this.stepSearchSize = options.stepSearchSize || 5;
 	this.minimumNoticedScrollDistance = options.minimumNoticedScrollDistance || 5;
@@ -71,7 +75,6 @@ Panopticon.prototype.setBetaSettings = function(img){
 
 
 Panopticon.prototype.perFrameFirstMode = function(img){
-
 	//Reduce the resolution for both columns and for the rows.
 	var toCols = imgproc.cols(this.oldImg, img, this.resolutionCols);
 	var toRows = imgproc.rows(this.oldImg, img, this.resolutionRows);
@@ -102,32 +105,62 @@ Panopticon.prototype.perFrameFirstMode = function(img){
 };
 
 
+Panopticon.prototype.perFrameSecondMode = function(img){
+	//Reduce the resolution for both columns and for the rows.
+	var toCols = imgproc.cols(this.oldImg, img, this.resolutionCols);
+	var toRows = imgproc.rows(this.oldImg, img, this.resolutionRows);
 
-
-function blockShiftedArr(before, after, range, step){
-	if(before && after){
-		var length = before.length;
-		for(var x = 0; x < length; x = x + step){
-			shifted.push(shiftedSingle(before[x], after[x], range, step));
-		}
-		return shifted;
+	//Get the differences for the columns
+	var shiftUp = blockShiftedArr(this.oldCols, toCols, this.biggestMovement, this.stepSearchSize, this.dampening);
+	var shiftSide = blockShiftedArr(this.oldRows, toRows, this.biggestMovement, this.stepSearchSize, this.dampening);
+	
+	if(this.showVideo){
+		var toReturn = imgproc.allToImg(toCols, toRows, img.width, img.height, this.resolutionCols, this.resolutionRows);
 	}
-}
 
-function collapseAverage(arrOfArr){
-	if(arrOfArr){
-		var ret = [];
-		for(var x = 0; x < arrOfArr[0].length; x++){
-			var av = 0;
-			for(var y = 0; y <  arrOfArr.length; y++){
-				av = av + arrOfArr[y][x];
+	var obj = {up: shiftUp,left: shiftSide}
+
+	for (var x = 0; x < this.onFrames.length; x++){
+		this.onFrames[x](obj);
+	}
+
+	this.oldImg = imgproc.copy(img);
+	this.oldCols = deepCopy(toCols);
+	this.oldRows = deepCopy(toRows);
+
+	if (this.showVideo){return toReturn || img;}
+};
+
+
+
+
+function blockShiftedArr(before, after, range, step, dampening){
+	if(before && after){
+		var smallestDiff = blockShiftedArrAt(0, before, after, step) - before.length * dampening ;
+		var smallestDiffIndex = 0;
+		for(var x = -range; x < range; x = x + 1){
+			var val = blockShiftedArrAt(x, before, after, range, step);
+			if (val < smallestDiff){
+				smallestDiff = val;
+				smallestDiffIndex = x;
 			}
-			ret.push(av / arrOfArr.length);
 		}
-		return ret;
+		return smallestDiffIndex;
 	}
 	return null;
 }
+
+function blockShiftedArrAt(offset, before, after, range, step){
+	var amount = 0;
+	var length = before[0].length - range;
+	for (var x = 0; x < before.length; x++){
+		for(var spot = range; spot < length; spot = spot + 1){
+			amount = amount + (before[x][spot] - after[x][spot-offset])
+		}
+	}
+	return amount;
+}
+
 
 //This returns the difference between the two things passed in, but only in rows and columns spaced (aproximately)
 //with width of steps.q

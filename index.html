@@ -18,9 +18,10 @@ $(document).ready(function(){
 	var options = {
 		verbose: true,
 		showVideo: true,
-		dampening: 300,
+		dampening: 1500,
 		requiredRows: 3,
-		requiredCols: 3
+		requiredCols: 3,
+		mode: 2
 	};
 
 	var p = new Panopticon('container', 50, options);
@@ -33,16 +34,14 @@ $(document).ready(function(){
 
 	p.onFrame(function(obj){
 
-
-		speedUp = speedUp + obj.up * .1;
+		speedUp = speedUp + obj.up * .02;
 		speedUp = speedUp * .95; 
-		speedSide = speedSide + obj.left * .1;
+		speedSide = speedSide + obj.left * .02;
 		speedSide = speedSide * .95;
 
 		top = top + speedUp;
 		side = side + speedSide;
-		//console.log(obj.up);
-		//console.log(top);
+
 		document.getElementById("temp").style.top = top+"px";
 		document.getElementById("temp").style.left = side+"px";
 
