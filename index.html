@@ -17,35 +17,46 @@ $(document).ready(function(){
 
 	var options = {
 		verbose: true,
-		showVideo: true,
-		dampening: 20,
-		requiredRows: 4,
-		requiredCols: 4,
-		mode: 1
+		showVideo: true
 	};
 
 	var p = new Panopticon('container', 50, options);
 
 	var top = 200;
 	var side = 600;
+	var rotate = 0;
 
 	var speedUp = 0;
 	var speedSide = 0;
+	var rotateSpeed = 0;
 
 	p.onFrame(function(obj){
-		console.log(obj.up);
+		//console.log("twist,", obj.twist);
+		//if (typeof rorate !== "number"){rotate = 0;}
 
-		speedUp = speedUp + obj.up * .05;
-		speedUp = speedUp * .95; 
-		speedSide = speedSide + obj.left * .05;
-		speedSide = speedSide * .95;
+		speedUp = speedUp + obj.up * .1;
+		speedUp = speedUp * .98; 
+		speedSide = speedSide + obj.left * .1;
+		speedSide = speedSide * .98;
+		rotateSpeed = rotateSpeed + obj.twist * .1;
+		rotateSpeed = rotateSpeed * 0.98
+		if(!rotateSpeed){rotateSpeed = 0;}
+		if(!rotate){rotate = 0;}
+		//console.log("rotate, ", rotateSpeed);
 
 		top = top + speedUp;
 		side = side + speedSide;
+		rotate = rotate + rotateSpeed;
+
+		if (top < 0){top = 0;}
+		if (top > 610){top = 610;}
+		if (side < 0){side=0;}
+		if (side > 1180){side = 1180}
 
 		document.getElementById("temp").style.top = top+"px";
 		document.getElementById("temp").style.left = side+"px";
-
+		document.getElementById("temp").style.transform = "rotate("+Math.round(rotate)+"deg)";
+		
 
 	});
 

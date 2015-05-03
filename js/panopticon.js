@@ -45,8 +45,8 @@ Panopticon.prototype.setAlphaSettings = function(options){
 	this.numRows = options.numRows || 20;
 	
 	//How many of these columns do we want to require to be moving before anything moves.
-	this.requiredCols = options.requiredCols || 4;
-	this.requiredRows = options.requiredRows || 4;
+	this.requiredCols = options.requiredCols || 5;
+	this.requiredRows = options.requiredRows || 5;
 
 	//Use mode 1, by default.
 	this.mode = options.mode || 1;
@@ -54,10 +54,10 @@ Panopticon.prototype.setAlphaSettings = function(options){
 	//Slightly more advanced settings.
 	//What's the biggest movement we anticipate, in per-percentage-of-screen distances?  Won't really work past 20%, probably.
 	//This also takes up some serious time working.
-	this.biggestMovementPercentage = options.biggestMovementPercentage || 5;
-	this.dampening = options.dampening || 150;
-	this.stepSearchSize = options.stepSearchSize || 5;
-	this.minimumNoticedScrollDistance = options.minimumNoticedScrollDistance || 3;
+	this.biggestMovementPercentage = options.biggestMovementPercentage || 10;
+	this.dampening = options.dampening || 30;
+	this.stepSearchSize = options.stepSearchSize || 2;
+	this.minimumNoticedScrollDistance = options.minimumNoticedScrollDistance || 2;
 	this.showVideo = options.showVideo || false;
 };
 
@@ -69,7 +69,8 @@ Panopticon.prototype.setBetaSettings = function(img){
 		while(img.width % this.resolutionCols !== 0){this.resolutionCols = this.resolutionCols + 1}
 		while(img.height % this.resolutionRows !== 0){this.resolutionRows = this.resolutionRows + 1}
 		this.biggestMovement = Math.ceil(this.biggestMovementPercentage * (((img.width + img.height) / 2) / 100));
-		this.initialized = true;
+		alert(this.biggestMovement);
+		this.betaInitialized = true;
 	}
 };
 
@@ -86,11 +87,14 @@ Panopticon.prototype.perFrameFirstMode = function(img){
 	var shiftSide = imgproc.shiftedArr(toRows, this.oldRows, this.biggestMovement, this.stepSearchSize, this.dampening);
 	var avShiftSide = imgproc.chunkify(shiftSide, this.requiredRows, this.minimumNoticedScrollDistance);
 
+	var twistHoriz = -twistify(shiftSide, Math.round(this.requiredRows/2), this.minimumNoticedScrollDistance/2);
+	var twistVert = -twistify(shiftUp, Math.round(this.requiredCols/2), this.minimumNoticedScrollDistance/2);
+
 	if(this.showVideo){
 		var toReturn = imgproc.allToImg(toCols, toRows, img.width, img.height, this.resolutionCols, this.resolutionRows);
 	}
 
-	var obj = {up: avShiftUp,left: avShiftSide}
+	var obj = {up: avShiftUp,left: avShiftSide, twist: twistHoriz+twistVert}
 
 	for (var x = 0; x < this.onFrames.length; x++){
 		//console.log(obj)
@@ -101,8 +105,8 @@ Panopticon.prototype.perFrameFirstMode = function(img){
 	this.oldCols = deepCopy(toCols);
 	this.oldRows = deepCopy(toRows);
 
-	if (this.showVideo){return imgproc.refl(img);}
-	//if (this.showVideo){return toReturn || img;}
+	//if (this.showVideo){return imgproc.refl(img);}
+	if (this.showVideo){return toReturn || img;}
 };
 
 
@@ -133,6 +137,22 @@ Panopticon.prototype.perFrameSecondMode = function(img){
 	//if (this.showVideo){return toReturn || img;}
 };
 
+
+function twistify(arr, required, minimum){
+	if (arr){
+		var oneSide = arr.slice(0,Math.round(arr.length/2));
+		var otherSide = arr.slice(Math.round(arr.length/2), arr.length);
+		var one = imgproc.chunkify(oneSide, required, minimum);
+		var other = imgproc.chunkify(otherSide, required, minimum);
+		if (one < 0 && other > 0){
+			return Math.max((one),(other));
+		}
+		if (one > 0 && other < 0){
+			return Math.min((one),(other));
+		}
+		return 0;
+	}
+}
 
 
 
