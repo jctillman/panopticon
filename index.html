@@ -17,10 +17,12 @@ $(document).ready(function(){
 
 	var options = {
 		verbose: true,
-		showVideo: false
+		interval: 40,
+		showVideo: false,
+		elementId: 'container'
 	};
 
-	var p = new Panopticon('container', 50, options);
+	var p = new Panopticon(options);
 
 	var top = 200;
 	var side = 600;
@@ -34,22 +36,19 @@ $(document).ready(function(){
 		//console.log("twist,", obj.twist);
 		//if (typeof rorate !== "number"){rotate = 0;}
 
-		speedUp = speedUp + obj.up * .1;
-		speedUp = speedUp * .98; 
-		speedSide = speedSide + obj.left * .1;
-		speedSide = speedSide * .98;
-		rotateSpeed = rotateSpeed + obj.twist * .1;
-		rotateSpeed = rotateSpeed * 0.98
-		if(!rotateSpeed){rotateSpeed = 0;}
-		if(!rotate){rotate = 0;}
-		//console.log("rotate, ", rotateSpeed);
+		speedUp = speedUp - obj.up * .07;
+		speedUp = speedUp * .97; 
+		speedSide = speedSide + obj.left * .07;
+		speedSide = speedSide * .97;
+		rotateSpeed = rotateSpeed + obj.twist * .07;
+		rotateSpeed = rotateSpeed * 0.97
 
 		top = top + speedUp;
 		side = side + speedSide;
 		rotate = rotate + rotateSpeed;
 
 		if (top < 0){top = 0;}
-		if (top > 610){top = 610;}
+		if (top > 560){top = 560;}
 		if (side < 0){side=0;}
 		if (side > 1180){side = 1180}
 
@@ -68,8 +67,8 @@ $(document).ready(function(){
 </head>
   
 <body>
-<div id="container">
-</div>
+<canvas id="container">
+</canvas>
 
 
 <img id="temp" style="position: absolute; left: 600px; top: 200px;" src="img/Chrome_logo.png"></img>
