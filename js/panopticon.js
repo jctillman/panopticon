@@ -31,11 +31,11 @@ Panopticon.prototype.setAlphaSettings = function(options){
 	this.betaInitialized = false;
 
 	//How many columns do we want to examine?
-	this.numCols = options.numCols || 32;
+	this.numCols = options.numCols || 36;
 	this.numRows = options.numRows || 24;
 	
 	//How many of these columns do we want to require to be moving before anything moves.
-	this.requiredCols = options.requiredCols || 10;
+	this.requiredCols = options.requiredCols || 12;
 	this.requiredRows = options.requiredRows || 8;
 
 	//Slightly more advanced settings.
