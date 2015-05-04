@@ -91,7 +91,7 @@ Panopticon.prototype.getMovementObject = function(img){
 	if(!twist){twist = 0;}
 
 	var movementObj = {
-		up: avShiftUp,
+		top: -avShiftUp,
 		left: avShiftSide,
 		twist: twist
 	}

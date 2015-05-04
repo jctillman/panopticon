@@ -15,15 +15,6 @@
 
 $(document).ready(function(){
 
-	var options = {
-		verbose: true,
-		interval: 50,
-		showVideo: true,
-		elementId: 'container'
-	};
-
-	var p = new Panopticon(options);
-
 	var top = 200;
 	var side = 600;
 	var rotate = 0;
@@ -32,11 +23,25 @@ $(document).ready(function(){
 	var speedSide = 0;
 	var rotateSpeed = 0;
 
-	p.onFrame(function(obj){
-		//console.log("twist,", obj.twist);
-		//if (typeof rorate !== "number"){rotate = 0;}
 
-		speedUp = speedUp - obj.up * .07;
+
+
+	var options = {
+		verbose: true,
+		interval: 35
+	};
+
+	var p = new Panopticon(options);
+
+
+	p.onFrame(function(obj){
+
+		//obj has three properties
+		//left--how much movement left is in the frame
+		//top--how much movement towards the top is in the frame
+		//twist--how much twistiness is in the frame
+
+		speedUp = speedUp + obj.top * .07;
 		speedUp = speedUp * .97; 
 		speedSide = speedSide + obj.left * .07;
 		speedSide = speedSide * .97;
