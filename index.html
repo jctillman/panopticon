@@ -24,19 +24,21 @@ $(document).ready(function(){
 	var rotateSpeed = 0;
 
 
-
-
 	var options = {
 		verbose: true,
-		interval: 35
+		interval: 35 //,
+		//showVideo: true,
+		//elementId: 'container'
 	};
 
 	var p = new Panopticon(options);
 
+	p.onFrame(moveBallAround);
 
-	p.onFrame(function(obj){
+	function moveBallAround(obj){
 
 		//obj has three properties
+		//
 		//left--how much movement left is in the frame
 		//top--how much movement towards the top is in the frame
 		//twist--how much twistiness is in the frame
@@ -60,9 +62,9 @@ $(document).ready(function(){
 		document.getElementById("temp").style.top = top+"px";
 		document.getElementById("temp").style.left = side+"px";
 		document.getElementById("temp").style.transform = "rotate("+Math.round(rotate)+"deg)";
-		
+			
 
-	});
+	}
 
 });
 
